@@ -1,0 +1,4 @@
+2019/01/16 18:45:03  查询地区信息， 接口'/getLocation.json', 参数level = 1,parentId = 1, 接口执行时间0;
+2019/01/16 18:46:03  查询地区信息， 接口'/getLocation.json', 参数level = 2,parentId = 2, 接口执行时间0;
+2019/01/16 18:46:55  查询地区信息， 接口'/getLocation.json', 参数level = 2,parentId = parentId, 接口执行时间0;
+2019/01/16 18:46:59  查询地区信息， 接口'/getLocation.json', 参数level = 2,parentId = 37, 接口执行时间0;
