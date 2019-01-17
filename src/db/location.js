@@ -4,7 +4,7 @@ import { locaData } from "./local_data";
 
 export const addLocation = () => {
     MD.then( db => {
-        var dbo = db.db("location");
+        var dbo = db.db("chicken");
 
         dbo.collection("location").insertMany( locaData, (err, res) => {
             if (err) throw err;

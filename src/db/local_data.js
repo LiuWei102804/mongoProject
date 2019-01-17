@@ -1,4 +1,5 @@
-export const locaData = [{"areaId":"1","areaCode":"110000","areaName":"北京市","level":"1","cityCode":"010","center":"116.407394,39.904211","parentId":"1"},
+export const locaData = [
+{"areaId":"1","areaCode":"110000","areaName":"北京市","level":"1","cityCode":"010","center":"116.407394,39.904211","parentId":"1"},
 {"areaId":"2","areaCode":"110100","areaName":"北京城区","level":"2","cityCode":"010","center":"116.407394,39.904211","parentId":"1"},
 {"areaId":"3","areaCode":"110101","areaName":"东城区","level":"3","cityCode":"010","center":"116.41649,39.928341","parentId":"2"},
 {"areaId":"4","areaCode":"110102","areaName":"西城区","level":"3","cityCode":"010","center":"116.365873,39.912235","parentId":"2"},
@@ -3253,4 +3254,5 @@ export const locaData = [{"areaId":"1","areaCode":"110000","areaName":"北京市
 {"areaId":"3256","areaCode":"820005","areaName":"风顺堂区","level":"3","cityCode":"1853","center":"113.541928,22.187368","parentId":"3251"},
 {"areaId":"3257","areaCode":"820006","areaName":"嘉模堂区","level":"3","cityCode":"1853","center":"113.558705,22.15376","parentId":"3251"},
 {"areaId":"3258","areaCode":"820007","areaName":"路凼填海区","level":"3","cityCode":"1853","center":"113.569599,22.13663","parentId":"3251"},
-{"areaId":"3259","areaCode":"820008","areaName":"圣方济各堂区","level":"3","cityCode":"1853","center":"113.559954,22.123486","parentId":"3251"}]
+{"areaId":"3259","areaCode":"820008","areaName":"圣方济各堂区","level":"3","cityCode":"1853","center":"113.559954,22.123486","parentId":"3251"},
+];
