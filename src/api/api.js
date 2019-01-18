@@ -2,125 +2,172 @@ import express from "express";
 import Request from "../request/result";
 import https from "https";
 import Log from "../log/log";
-import WXBizDataCrypt from "../util/WXBizDataCrypt";
-import { format , transformTimeToSecond } from "../util/util";
+import Pattern from "../util/pattern";
+//import WXBizDataCrypt from "../util/WXBizDataCrypt";
+import { format , randomNumber } from "../util/util";
+import redis from "redis";
+import UUID from "uuid";
 import MD from "../db/mongodb";
+
 
 
 const route = express.Router();
 const log = new Log();
-const code2session = "https://api.weixin.qq.com/sns/jscode2session";
-const appId = "wxde66ed9e6259db5b";
-const secret = "e283678f7339a213555ad8acff712cb7";
-const grant_type = "authorization_code";
-let sessionKey = "";
-let accessToken = null;
+const pattern = new Pattern();
+const client = redis.createClient();
 
 
-route.post("/login.json",(req,res,next) => {
+client.on("error", function (err) {
+    console.log("Error " + err);
+});
+
+// const code2session = "https://api.weixin.qq.com/sns/jscode2session";
+// const appId = "wxde66ed9e6259db5b";
+// const secret = "e283678f7339a213555ad8acff712cb7";
+// const grant_type = "authorization_code";
+// let sessionKey = "";
+// let accessToken = null;
+
+
+/*
+*   注册登录
+* */
+route.post("/login.json",( req , res, next ) => {
+    const request = new Request();
     let start = Date.now();
     let body = req.body;
+    let code = "";
+    if( !pattern.isPhone( body.account ) ) {
+        request.setCode( request.NO_PARAM_ERROR() );
+        request.setMsg( `${request.NO_PARAM_MSG()} account 不能为空` );
+        res.send( request );
+        log.logInfo(`${format( Date.now() )}  发送验证码， 接口'/login.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms`);
+    }
+    if( request.isEmpty( body.code + "" ) ) {
+        request.setCode( request.NO_PARAM_ERROR() );
+        request.setMsg( `${request.NO_PARAM_MSG()} code 不能为空` );
+        res.send( request );
+        log.logInfo(`${format( Date.now() )}  发送验证码， 接口'/login.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms`);
+    }
+    client.get( `${body.account}_code` , ( err, str ) => {
+        if( err ) {
+            log.logError( err );
+            request.setCode( 500 );
+            request.setMsg( "查询token错误" );
+            res.send( request );
+        }
+        //有验证码
+        if( Boolean( str ) ) {
+            let json = JSON.parse( str );
+            if( body.code != json.randomNumber ) {
+                request.setCode( request.PARAM_ERROR() );
+                request.setMsg( request.PARAM_ERROR_MSG() );
+                res.send( request );
+            }
 
-    https.get(`${code2session}?appid=${appId}&secret=${secret}&grant_type=${grant_type}&js_code=${body.code}` , res2 => {
-        res2.on("data", ( d ) => {
-            sessionKey = d.session_key;
-            res.send( d );
-        });
-    }).on("error", e => {
-        console.log("出错了 " , JSON.stringify( e ) )
+            MD.then(db => {
+                db.db("chicken").collection("users").find({ "account" :body.account }).toArray((err2,res2) => {
+                    if( err2 ) {
+                        request.setMsg("查询错误");
+                        request.setCode(500);
+                        request.setResult(null);
+                        res.send( request );
+                    }
+
+                    if( res2.length > 0 ) {
+
+                        let v1 = UUID.v1();
+                        request.setCode(200);
+                        request.setMsg("成功");
+                        request.setResult( v1 );
+                        req.cookies.set("token" , v1 ,{
+                            expires : new Date( Date.now() + 86400000 )
+                        });
+                        client.set( v1 , JSON.stringify( { account : body.account } ) );
+                        client.expire( v1 , 86400 );
+                        res.send( request );
+                    } else {
+
+                        MD.then(db => {
+                            db.db("chicken").collection("users").insertOne({ account : body.account } , (err,result) => {
+                                try{
+                                    let v1 = UUID.v1();
+                                    request.setCode(200);
+                                    request.setMsg("成功");
+                                    result.setResult( v1 );
+                                    req.cookies.set("token" , v1 ,{
+                                        expires : new Date( Date.now() + 86400000  )
+                                    });
+                                    client.set( v1 , JSON.stringify( { account : body.account } ) );
+                                    client.expire( v1 , 86400 );
+                                    res.send( request );
+                                } catch ( e ) {
+                                    request.setMsg("服务器错误");
+                                    request.setCode(500);
+                                    res.send( request );
+                                }
+                                log.logInfo(`${format( Date.now() )}  注册登录， 接口'/login.json', 参数level = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms`);
+                            })
+                        });
+                    }
+                })
+            })
+        //无验证码
+        } else {
+            request.setCode(412);
+            request.setMsg("验证码不正确");
+            res.send( request );
+        }
     })
 });
 
 
 /*
-*   desc : 获取地址信息
+*   模拟发送验证码
 * */
-route.get("/getLocation.json",( req , res , next ) => {
-    let start = Date.now();
-    let query = req.query;
-    let where = {
-        "level" : query.level || "1" ,
-        "parentId" : query.parentId || "1"
-    };
-    MD.then(db => {
-        db.db("chicken").collection("location").find( where ).toArray((err,result) => {
-            const request = new Request();
-            try{
-                request.setResult( result );
-                res.send( request );
-            } catch ( e ) {
-                request.setMsg("服务器错误");
-                request.setCode(500);
-                request.setResult(null);
-                res.send( request );
-            }
-            log.logInfo(`${format( Date.now() )}  查询地区信息， 接口'/getLocation.json', 参数level = ${where.level},parentId = ${where.parentId}, 接口执行时间${ Date.now() - start }ms`);
-        })
-    });
-});
-
-/*
-*   新增地址信息
-* */
-route.post("/addUserLocation.json",(req,res,next) => {
+route.post("/sendCode.json",(req,res,next) => {
+    const request = new Request();
     let start = Date.now();
     let body = req.body;
-    const request = new Request();
-    if( request.isEmpty( body.realName ) ) {
+
+    if( request.isEmpty( body.account ) ) {
         request.setCode( request.NO_PARAM_ERROR() );
-        request.setMsg( `${request.NO_PARAM_MSG()} realName 不能为空` );
+        request.setMsg( `${request.NO_PARAM_MSG()} account 不能为空` );
         res.send( request );
-        log.logInfo(`${format( Date.now() )}  发布商品信息， 接口'/addUserLocation.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms`);
+        log.logInfo(`${format( Date.now() )}  发送验证码， 接口'/sendCode.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms`);
     }
-    if( request.isEmpty( body.phone ) ) {
-        request.setCode( request.NO_PARAM_ERROR() );
-        request.setMsg( `${request.NO_PARAM_MSG()} phone 不能为空` );
+    if( !pattern.isPhone( body.account ) ) {
+        request.setCode( request.PARAM_ERROR() );
+        request.setMsg( `${request.PARAM_ERROR_MSG()} account 不是手机号格式` );
         res.send( request );
-        log.logInfo(`${format( Date.now() )}  发布商品信息， 接口'/addUserLocation.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms`);
-    }
-    if( request.isEmpty( body.province ) ) {
-        request.setCode( request.NO_PARAM_ERROR() );
-        request.setMsg( `${request.NO_PARAM_MSG()} province 不能为空` );
-        res.send( request );
-        log.logInfo(`${format( Date.now() )}  发布商品信息， 接口'/addUserLocation.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms`);
-    }
-    if( request.isEmpty( body.city ) ) {
-        request.setCode( request.NO_PARAM_ERROR() );
-        request.setMsg( `${request.NO_PARAM_MSG()} province 不能为空` );
-        res.send( request );
-        log.logInfo(`${format( Date.now() )}  发布商品信息， 接口'/addUserLocation.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms`);
-    }
-    if( request.isEmpty( body.area ) ) {
-        request.setCode( request.NO_PARAM_ERROR() );
-        request.setMsg( `${request.NO_PARAM_MSG()} area 不能为空` );
-        res.send( request );
-        log.logInfo(`${format( Date.now() )}  发布商品信息， 接口'/addUserLocation.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms`);
+        log.logInfo(`${format( Date.now() )}  发送验证码， 接口'/sendCode.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms`);
     }
 
-    MD.then(db => {
-        db.db("chicken").collection("user_location").insertOne( body ,(err,result) => {
-            try{
-                request.setResult( result );
-                res.send( request );
-            } catch ( e ) {
-                request.setMsg("服务器错误");
-                request.setCode(500);
-                request.setResult(null);
-                res.send( request );
-            }
-            log.logInfo(`${format( Date.now() )}  发布商品信息， 接口'/publish.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms`);
-        })
+    let random = randomNumber();
+    client.set( `${body.account}_code` ,JSON.stringify( { randomNumber : random } ), err => {
+        if( err )
+            log.logError( err )
     });
+    client.expire( `${body.account}_code`, 300 );
+
+    request.setResult( random );
+    res.send( request );
+    log.logInfo(`${format( Date.now() )}  发送验证码， 接口'/sendCode.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms`);
 });
+
+
+
+
+
 
 
 /*
 *   发布商品
 * */
 route.post("/publish.json",(req,res,next) => {
+    const request = new Request();
     let start = Date.now();
     let body = req.body;
-    const request = new Request();
     if( request.isEmpty( body.name ) ) {
         request.setCode( request.NO_PARAM_ERROR() );
         request.setMsg( `${request.NO_PARAM_MSG()} name 不能为空` );
@@ -158,7 +205,6 @@ route.post("/publish.json",(req,res,next) => {
 
     MD.then(db => {
         db.db("chicken").collection("goods").insertOne( body ,(err,result) => {
-
             try{
                 request.setResult( result );
                 res.send( request );

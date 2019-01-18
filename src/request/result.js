@@ -1,5 +1,6 @@
 import HttpStatus from "./httpStatus";
 
+let runtime = null;
 export default class Request extends HttpStatus {
     constructor(){
         super();

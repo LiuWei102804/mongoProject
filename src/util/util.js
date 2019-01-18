@@ -31,3 +31,9 @@ export const format = ( time , fmt = "yyyy/MM/dd hh:mm:ss" ) => {
 export const transformTimeToSecond = ( ms ) => {
     return Math.floor( ms / 1000 );
 }
+/*
+*   生成6位验证码
+* */
+export const randomNumber = () => {
+    return Math.floor( ( Math.random() + 1 ) * 100000 );
+}
