@@ -3,7 +3,6 @@ import Request from "../request/result";
 import https from "https";
 import Log from "../log/log";
 import Pattern from "../util/pattern";
-//import WXBizDataCrypt from "../util/WXBizDataCrypt";
 import { format , randomNumber } from "../util/util";
 import redis from "redis";
 import UUID from "uuid";
@@ -73,7 +72,6 @@ route.post("/login.json",( req , res, next ) => {
                         request.setResult(null);
                         res.send( request );
                     }
-
                     if( res2.length > 0 ) {
 
                         let v1 = UUID.v1();
@@ -145,8 +143,9 @@ route.post("/sendCode.json",(req,res,next) => {
 
     let random = randomNumber();
     client.set( `${body.account}_code` ,JSON.stringify( { randomNumber : random } ), err => {
-        if( err )
+        if( err ) {
             log.logError( err )
+        };
     });
     client.expire( `${body.account}_code`, 300 );
 
@@ -154,10 +153,6 @@ route.post("/sendCode.json",(req,res,next) => {
     res.send( request );
     log.logInfo(`${format( Date.now() )}  发送验证码， 接口'/sendCode.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms`);
 });
-
-
-
-
 
 
 

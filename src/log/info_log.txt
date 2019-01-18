@@ -39,3 +39,5 @@
 2019/01/18 17:52:37  查询地区信息， 接口'/getLocation.json', 参数level = 2,parentId = 1, 接口执行时间13ms;
 2019/01/18 17:52:48  查询地区信息， 接口'/getLocation.json', 参数level = 2,parentId = 792, 接口执行时间11ms;
 2019/01/18 17:52:51  查询地区信息， 接口'/getLocation.json', 参数level = 3,parentId = 793, 接口执行时间26ms;
+2019/01/18 18:07:21  发送验证码， 接口'/sendCode.json', 参数body = {"account":"13857102804"}, 接口执行时间8ms;
+2019/01/18 18:08:17  发送验证码， 接口'/sendCode.json', 参数body = {"account":"13857102804"}, 接口执行时间4ms;

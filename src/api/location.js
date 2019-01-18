@@ -8,8 +8,18 @@ import route from "./api";
 
 
 const location_route = express.Router();
+const client = redis.createClient();
 const log = new Log();
 
+
+location_route.get("/userLocations.json",( req,res,next ) => {
+    const request = new Request();
+    let start = Date.now();
+    let token = req.cookies.get("token");
+
+    console.log( token , client.get( token ) )
+    res.send("正在查询");
+});
 
 /*
 *   desc : 获取地址信息
