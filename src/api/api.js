@@ -40,13 +40,13 @@ route.post("/login.json",( req , res, next ) => {
         request.setCode( request.NO_PARAM_ERROR() );
         request.setMsg( `${request.NO_PARAM_MSG()} account 不能为空` );
         res.send( request );
-        log.logInfo(`${format( Date.now() )}  发送验证码， 接口'/login.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms`);
+        log.logInfo(`${format( Date.now() )}  发送验证码， 接口'/login.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms, return ${JSON.stringify( request )}`);
     }
     if( request.isEmpty( body.code + "" ) ) {
         request.setCode( request.NO_PARAM_ERROR() );
         request.setMsg( `${request.NO_PARAM_MSG()} code 不能为空` );
         res.send( request );
-        log.logInfo(`${format( Date.now() )}  发送验证码， 接口'/login.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms`);
+        log.logInfo(`${format( Date.now() )}  发送验证码， 接口'/login.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms, return ${JSON.stringify( request )}`);
     }
     client.get( `${body.account}_code` , ( err, str ) => {
         if( err ) {
@@ -77,12 +77,12 @@ route.post("/login.json",( req , res, next ) => {
                         let v1 = UUID.v1();
                         request.setCode(200);
                         request.setMsg("成功");
-                        request.setResult( v1 );
-                        req.cookies.set("token" , v1 ,{
+                        request.setResult( body.account );
+                        req.cookies.set("account" , body.account ,{
                             expires : new Date( Date.now() + 86400000 )
                         });
-                        client.set( v1 , JSON.stringify( { account : body.account } ) );
-                        client.expire( v1 , 86400 );
+                        client.set( body.account , JSON.stringify( { token : v1 } ) );
+                        client.expire( body.account , 86400 );
                         res.send( request );
                     } else {
 
@@ -92,19 +92,19 @@ route.post("/login.json",( req , res, next ) => {
                                     let v1 = UUID.v1();
                                     request.setCode(200);
                                     request.setMsg("成功");
-                                    result.setResult( v1 );
-                                    req.cookies.set("token" , v1 ,{
+                                    result.setResult( body.account );
+                                    req.cookies.set("account" , body.account ,{
                                         expires : new Date( Date.now() + 86400000  )
                                     });
-                                    client.set( v1 , JSON.stringify( { account : body.account } ) );
-                                    client.expire( v1 , 86400 );
+                                    client.set( body.account , JSON.stringify( { token : v1 } ) );
+                                    client.expire( body.account , 86400 );
                                     res.send( request );
                                 } catch ( e ) {
                                     request.setMsg("服务器错误");
                                     request.setCode(500);
                                     res.send( request );
                                 }
-                                log.logInfo(`${format( Date.now() )}  注册登录， 接口'/login.json', 参数level = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms`);
+                                log.logInfo(`${format( Date.now() )}  注册登录， 接口'/login.json', 参数level = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms, return ${JSON.stringify( request )}`);
                             })
                         });
                     }
@@ -132,13 +132,13 @@ route.post("/sendCode.json",(req,res,next) => {
         request.setCode( request.NO_PARAM_ERROR() );
         request.setMsg( `${request.NO_PARAM_MSG()} account 不能为空` );
         res.send( request );
-        log.logInfo(`${format( Date.now() )}  发送验证码， 接口'/sendCode.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms`);
+        log.logInfo(`${format( Date.now() )}  发送验证码， 接口'/sendCode.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms, return ${JSON.stringify( request )}`);
     }
     if( !pattern.isPhone( body.account ) ) {
         request.setCode( request.PARAM_ERROR() );
         request.setMsg( `${request.PARAM_ERROR_MSG()} account 不是手机号格式` );
         res.send( request );
-        log.logInfo(`${format( Date.now() )}  发送验证码， 接口'/sendCode.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms`);
+        log.logInfo(`${format( Date.now() )}  发送验证码， 接口'/sendCode.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms, return ${JSON.stringify( request )}`);
     }
 
     let random = randomNumber();
@@ -151,7 +151,30 @@ route.post("/sendCode.json",(req,res,next) => {
 
     request.setResult( random );
     res.send( request );
-    log.logInfo(`${format( Date.now() )}  发送验证码， 接口'/sendCode.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms`);
+    log.logInfo(`${format( Date.now() )}  发送验证码， 接口'/sendCode.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms, return ${JSON.stringify( request )}`);
+});
+
+/*
+*   查询登录状态
+* */
+route.get("/isLogin.json",(req,res,next) => {
+    const request = new Request();
+    let start = Date.now();
+    let query = req.query;
+
+    client.get( req.cookies.get("token") ,( err , str ) => {
+        if( Boolean( str ) ) {
+            request.setCode( 200 );
+            request.setMsg("已登录");
+            request.setResult( true );
+        } else {
+            request.setCode( 400 );
+            request.setMsg("未登录");
+            request.setResult( false );
+        }
+        res.send( request );
+        log.logInfo(`${format( Date.now() )}  发送验证码， 接口'/isLogin.json', account = ${query.account}, 接口执行时间${ Date.now() - start }ms, return ${JSON.stringify( request )}`);
+    })
 });
 
 
@@ -167,37 +190,38 @@ route.post("/publish.json",(req,res,next) => {
         request.setCode( request.NO_PARAM_ERROR() );
         request.setMsg( `${request.NO_PARAM_MSG()} name 不能为空` );
         res.send( request );
-        log.logInfo(`${format( Date.now() )}  发布商品信息， 接口'/publish.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms`);
+        log.logInfo(`${format( Date.now() )}  发布商品信息， 接口'/publish.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms, return ${JSON.stringify( request )}`);
     }
     if( request.isEmpty( body.price ) ) {
         request.setCode( request.NO_PARAM_ERROR() );
         request.setMsg( `${request.NO_PARAM_MSG()} price 不能为空` );
         res.send( request );
-        log.logInfo(`${format( Date.now() )}  发布商品信息， 接口'/publish.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms`);
+        log.logInfo(`${format( Date.now() )}  发布商品信息， 接口'/publish.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms, return ${JSON.stringify( request )}`);
 
     }
     if( request.isEmpty( body.stock ) ) {
         request.setCode( request.NO_PARAM_ERROR() );
         request.setMsg( `${request.NO_PARAM_MSG()} stock 不能为空` );
         res.send( request );
-        log.logInfo(`${format( Date.now() )}  发布商品信息， 接口'/publish.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms`);
+        log.logInfo(`${format( Date.now() )}  发布商品信息， 接口'/publish.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms, return ${JSON.stringify( request )}`);
 
     }
     if( request.isEmpty( body.locaId ) ) {
         request.setCode( request.NO_PARAM_ERROR() );
         request.setMsg( `${request.NO_PARAM_MSG()} locaId 不能为空` );
         res.send( request );
-        log.logInfo(`${format( Date.now() )}  发布商品信息， 接口'/publish.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms`);
+        log.logInfo(`${format( Date.now() )}  发布商品信息， 接口'/publish.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms, return ${JSON.stringify( request )}`);
 
     }
     if( request.isEmptyArray( body.pics ) ) {
         request.setCode( request.NO_PARAM_ERROR() );
         request.setMsg( `${request.NO_PARAM_MSG()} pics 最少一条数据` );
         res.send( request );
-        log.logInfo(`${format( Date.now() )}  发布商品信息， 接口'/publish.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms`);
+        log.logInfo(`${format( Date.now() )}  发布商品信息， 接口'/publish.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms, return ${JSON.stringify( request )}`);
 
     }
 
+    body.account = req.cookies.get("token");
     MD.then(db => {
         db.db("chicken").collection("goods").insertOne( body ,(err,result) => {
             try{
@@ -209,7 +233,7 @@ route.post("/publish.json",(req,res,next) => {
                 request.setResult(null);
                 res.send( request );
             }
-            log.logInfo(`${format( Date.now() )}  发布商品信息， 接口'/publish.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms`);
+            log.logInfo(`${format( Date.now() )}  发布商品信息， 接口'/publish.json', 参数body = ${JSON.stringify(body)}, 接口执行时间${ Date.now() - start }ms, return ${JSON.stringify( request )}`);
         })
     });
 });
