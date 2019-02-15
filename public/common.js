@@ -19,3 +19,10 @@ export const format = ( time , fmt = "yyyy/MM/dd hh:mm:ss" ) => {
             fmt = fmt.replace(RegExp.$1, RegExp.$1.length == 1 ? o[k] : ("00" + o[k]).substr(("" + o[k]).length ) );
     return fmt;
 }
+
+/*
+*   手机号检测
+* */
+export const isPhone = ( val ) => {
+    return /^1[3|4|5|7|8|6|9][0-9]{9}$/.test( val );
+}

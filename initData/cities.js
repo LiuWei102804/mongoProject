@@ -1,4 +1,4 @@
-export const locaData = [
+export default [
     {"areaId":"1","areaCode":"110000","areaName":"北京市","level":"1","cityCode":"010","center":"116.407394,39.904211","parentId":"1"},
     {"areaId":"2","areaCode":"110100","areaName":"北京城区","level":"2","cityCode":"010","center":"116.407394,39.904211","parentId":"1"},
     {"areaId":"3","areaCode":"110101","areaName":"东城区","level":"3","cityCode":"010","center":"116.41649,39.928341","parentId":"2"},

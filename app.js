@@ -1,5 +1,6 @@
 import express from "express";
 import db from "./mongodb/db";
+//import redisClient from "./redis/redis";
 import bodyParse from "body-parser";
 import config from "config-lite";
 import cookieParser from "cookie-parser";
@@ -30,6 +31,7 @@ app.all("*",(req, res, next) => {
 const MongoStore = connectMongo( session );
 app.use(cookieParser());                    //cookie运用
 app.use( bodyParse.json() );                //解析post请求
+app.use( express.static("/src/images/*") );
 
 //session运用
 app.use(session({
@@ -49,9 +51,12 @@ app.use(expressWinston.logger({
             colorize: true
         }),
         new winston.transports.File({
-            filename: 'logs/' + format( Date.now() ) + '-success.log' ////根据日前生成日志成功文件
+            filename: 'logs/' + format( Date.now(),"yyyyMMdd" ) + '-success.log' ////根据日期生成日志成功文件
         })
-    ]
+    ] ,
+    msg: "HTTP {{req.method}} {{req.url}}",
+    expressFormat: true, // Use the default Express/morgan request formatting. Enabling this will override any msg if true. Will only output colors with colorize set to true
+    colorize: true, // Color the text and status code, using the Express/morgan color palette (text: gray, status: default green, 3XX cyan, 4XX yellow, 5XX red).
 }));
 //错误日志
 app.use(expressWinston.errorLogger({
@@ -61,13 +66,14 @@ app.use(expressWinston.errorLogger({
             colorize: true
         }),
         new winston.transports.File({
-            filename: 'logs/' + format( Date.now() ) + '-error.log' //根据日前生成日志错误文件
+            filename: 'logs/' + format( Date.now(),"yyyyMMdd" ) + '-error.log' //根据日前生成日志错误文件
         })
     ]
 }));
 
 
 router( app );
+
 
 app.listen(config.prot);
 
