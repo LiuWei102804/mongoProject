@@ -6,18 +6,17 @@ class Check{
     }
     async checkUser( req, res , next ){
         let request = new Request();
-        const token = req.session.token;
+        const uid = req.session.uid;
 
         try{
-            throw new Error("请先登录");
-        } catch ( e ) {
-            if( !token ) {
-                request.setCode( 400 );
-                request.setMsg( e.message );
-                res.send( request );
-                return;
+            console.log( `uid   ================= ${ uid }` )
+            if( !uid ) {
+                throw new Error("请先登录");
             }
-
+        } catch ( e ) {
+            request.setCode( 401 );
+            request.setMsg( e.message );
+            res.send( request );
         }
         next()
     }

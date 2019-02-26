@@ -5,7 +5,7 @@ import multer from "multer";
 var uploadFolder = "";
 var storage = multer.diskStorage({
     destination : function ( req , file , cb ) {
-        uploadFolder = "src/images/" + req.session.token + "/";
+        uploadFolder = "images/" + req.session.uid.account + "/";
         if( !fs.existsSync( uploadFolder ) ) {
             fs.mkdir( uploadFolder );
         }

@@ -8,7 +8,7 @@ export const addLocation = () => {
 
         dbo.collection("location").insertMany( locaData, (err, res) => {
             if (err) throw err;
-            console.log("插入的文档数量为: " + res.insertedCount);
+            //console.log("插入的文档数量为: " + res.insertedCount);
             db.close();
         });
     });

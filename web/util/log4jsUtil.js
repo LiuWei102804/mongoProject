@@ -6,7 +6,7 @@ log4js.loadAppender("file");
 
 var currTime = format( Date.now() , "yyyyMMdd" );
 
-log4js.addAppender(log4js.appenders.file("../../logs/" + currTime + ".log"),"user"); //根据日期保存日志信息
+log4js.addAppender(log4js.appenders.file("logs/info/" + currTime + ".log"),"user"); //根据日期保存日志信息
 
 var logger = log4js.getLogger("user");
 

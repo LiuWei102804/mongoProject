@@ -1,17 +1,19 @@
 import express from "express";
 import check from "../web/middlewares/check";
-import Product from "../web/controller/product/product";
+import ProductController from "../web/controller/product/product";
 import upload from "../web/middlewares/multer";
 
 const router = express.Router();
 
 
-router.get("/getProductById.json" , Product.getProductById );
-router.get("/getProductByLimit.json" , Product.getProductByLimit );
-router.post("/save.json" , check.checkUser , Product.saveOne );
-router.post("/update.json" , check.checkUser , Product.update );
-router.post("/uploadPic.json" , check.checkUser , upload.single("avatar") , Product.uploadPic );
-router.get("/test/:id" , Product.test );
+router.get("/getProductById.json" , ProductController.getProductById );
+router.get("/getProductByUser.json" , ProductController.getProductByUser );
+router.get("/hotProducts.json" , ProductController.hotProducts );
+router.get("/getProductByLimit.json" , ProductController.getProductByLimit );
+router.post("/save.json" , check.checkUser , ProductController.saveOne );
+router.post("/update.json" , check.checkUser , ProductController.update );
+router.post("/uploadPic.json" , check.checkUser , upload.single("avatar") , ProductController.uploadPic );
+// router.get("/test/:id" , ProProductControllerduct.test );
 
 
 export default router;

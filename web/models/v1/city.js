@@ -10,7 +10,7 @@ const citySchema = new mongoose.Schema({
     cityCode : String ,
     center : String ,
     parentId : Number
-},{ id : false });
+},{ id : false , versionKey : false , timestamps : true });
 
 //获取所有城市
 citySchema.statics.cityGroup = function({ level = 1 , parentId = 1 }) {
@@ -25,7 +25,7 @@ citySchema.statics.cityGroup = function({ level = 1 , parentId = 1 }) {
                 name: 'ERROR_DATA',
                 message: '查找数据失败'
             });
-            console.error(err);
+            //console.error(err);
         }
     });
 };

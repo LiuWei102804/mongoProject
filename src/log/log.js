@@ -14,7 +14,7 @@ export default class Log{
                     fs.close( fd );
                 });
             } catch ( e ) {
-                console.log( e );
+                //console.log( e );
             }
         });
     }
@@ -26,7 +26,7 @@ export default class Log{
                     fs.close( fd );
                 });
             } catch ( e ) {
-                console.log( e );
+                //console.log( e );
             }
         });
     }

@@ -1,0 +1,24 @@
+[2019-02-22 13:48:04.281] [INFO] user - mongooDB数据库连接成功.端口号：8999
+[2019-02-22 14:08:37.197] [INFO] user - mongooDB数据库连接成功.端口号：8999
+[2019-02-22 14:09:33.014] [INFO] user - mongooDB数据库连接成功.端口号：8999
+[2019-02-22 14:13:49.116] [INFO] user - mongooDB数据库连接成功.端口号：8999
+[2019-02-22 14:26:50.507] [INFO] user - mongooDB数据库连接成功.端口号：8999
+[2019-02-22 14:28:41.361] [INFO] user - mongooDB数据库连接成功.端口号：8999
+[2019-02-22 14:30:12.333] [INFO] user - mongooDB数据库连接成功.端口号：8999
+[2019-02-22 14:31:56.762] [INFO] user - mongooDB数据库连接成功.端口号：8999
+[2019-02-22 14:32:23.712] [INFO] user - mongooDB数据库连接成功.端口号：8999
+[2019-02-22 14:35:05.086] [INFO] user - mongooDB数据库连接成功.端口号：8999
+[2019-02-22 14:36:25.126] [INFO] user - mongooDB数据库连接成功.端口号：8999
+[2019-02-22 14:37:49.787] [INFO] user - mongooDB数据库连接成功.端口号：8999
+[2019-02-22 14:38:58.187] [INFO] user - mongooDB数据库连接成功.端口号：8999
+[2019-02-22 14:43:08.455] [INFO] user - mongooDB数据库连接成功.端口号：8999
+[2019-02-22 14:43:44.813] [INFO] user - mongooDB数据库连接成功.端口号：8999
+[2019-02-22 14:44:56.972] [INFO] user - mongooDB数据库连接成功.端口号：8999
+[2019-02-22 15:20:50.800] [INFO] user - mongooDB数据库连接成功.端口号：8999
+[2019-02-22 15:21:16.547] [INFO] user - mongooDB数据库连接成功.端口号：8999
+[2019-02-22 15:33:39.612] [INFO] user - mongooDB数据库连接成功.端口号：8999
+[2019-02-22 16:00:29.480] [DEBUG] user - mongooDB数据库连接错误.MongoNetworkError: failed to connect to server [127.0.0.1:27017] on first connect [MongoNetworkError: connection 0 to 127.0.0.1:27017 timed out]
+[2019-02-22 16:02:14.818] [INFO] user - mongooDB数据库连接成功.端口号：8999
+[2019-02-22 16:03:36.706] [INFO] user - mongooDB数据库连接成功.端口号：8999
+[2019-02-22 16:05:49.185] [INFO] user - mongooDB数据库连接成功.端口号：8999
+[2019-02-22 17:18:37.104] [INFO] user - mongooDB数据库连接成功.端口号：8999

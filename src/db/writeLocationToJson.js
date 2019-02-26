@@ -13,7 +13,7 @@ const rl = readline.createInterface({
     output : fWrite
 });
 fRead.on("end",function () {
-    console.log("end")
+    //console.log("end")
     enableWrite = true;
     fWrite.write( "];\n" );
 });

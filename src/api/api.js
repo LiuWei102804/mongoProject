@@ -17,7 +17,7 @@ const client = redis.createClient();
 
 
 client.on("error", function (err) {
-    console.log("Error " + err);
+    //console.log("Error " + err);
 });
 
 // const code2session = "https://api.weixin.qq.com/sns/jscode2session";

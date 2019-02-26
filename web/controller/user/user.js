@@ -1,11 +1,16 @@
+//import UUID from "uuid";
+import session from "express-session";
 import UserModel from "../../models/user/user";
+import CheckForm from "../../prototype/checkform";
+import RedisReserve from "../../middlewares/redis";
 import Request from "../../prototype/request";
 import { isPhone } from "../../../public/common";
 
 
 
-class User {
+class User extends CheckForm {
     constructor(){
+        super();
         this.login = this.login.bind(this);
         this.verifyCode = this.verifyCode.bind(this);
         this.logout = this.logout.bind(this);
@@ -17,49 +22,72 @@ class User {
         let request = new Request();
         try{
             let body = req.body;
-            if( !isPhone( body.account ) ) {
-                request.setCode(400);
-                request.setMsg("账号不能为空");
-                res.send( request );
+            if( req.session.uid ) {
+                let { account } = req.session.uid;
+                if( account == body.account ) {
+                    request.setResult( req.session.uid );
+                    throw new Error(JSON.stringify({ code : 401 , message : "该账号已登录" }));
+                }
             }
-            if( !Boolean( body.code ) ) {
-                request.setCode(400);
-                request.setMsg("验证码不能为空");
-                res.send( request );
+            if( !this.isPhone( body.account ) ) {
+                throw new Error(JSON.stringify( { code : 400 , message : "账号不正确" } ));
             }
-            if( body.code != req.session.vcode ) {
-                request.setCode(400);
-                request.setMsg("验证码不正确");
-                res.send( request );
+            if( this.isEmpty( body.code ) ) {
+                throw new Error(JSON.stringify({ code : 400 , message : "验证码不能为空" }));
             }
-            if( Date.now() - req.session.vcodeTime > 60000 ) {
-                request.setCode(400);
-                request.setMsg("验证码超时");
-                res.send( request );
-            }
-            const user = await UserModel.findOne({ account : body.account },["-_id","-__v"]);
-            if( !user ) {
-                UserModel.create({ account : body.account },( err , u) => {
-                    if( err ) {
-                        console.error( err );
-                    }
-                    request.setCode(200);
-                    request.setMsg("成功");
-                    request.setResult( u );
-                    req.session.token = body.account;
-                    res.send( request );
-                });
 
+            let data = await RedisReserve.getValue( body.account );
+            if( data ) {
+                let beforeCode = JSON.parse( data ).code;
+                if( body.code != beforeCode ) {
+                    throw new Error(JSON.stringify({ code : 400 , message : "验证码不正确" }));
+                }
             } else {
-                request.setCode(200);
+                throw new Error(JSON.stringify({ code : 400 , message : "验证码超时" }));
+            }
+
+            let findParam = { account : body.account };
+            let check = await UserModel.findOne( findParam );
+            let user = check ? check : await UserModel.create( findParam );
+
+            req.session.uid = user;
+            request.setCode(200);
+            request.setMsg("成功");
+            request.setResult( user );
+
+        } catch( e ) {
+            console.log( e.message )
+            let message = JSON.parse( e.message );
+            request.setCode( message.code );
+            request.setMsg( message.message );
+
+        } finally {
+            res.send( request );
+        }
+    }
+    /*
+    *   自动登录
+    * */
+    async isLogin( req , res , next ){
+        let request = new Request();
+        // console.log(`req.protocol  ==============>    ${req.protocol}` )
+        try{
+
+            if( req.session.uid ) {
                 request.setMsg("成功");
-                request.setResult( user );
-                req.session.token = body.account;
-                res.send( request );
+                request.setCode(200);
+                request.setResult( req.session.uid );
+            } else {
+                request.setCode(401);
+                request.setMsg("session过期，重新登录");
             }
         } catch( e ) {
-            request.setCode(500);
-            request.setMsg("服务器错误");
+            console.log( e.message )
+            let message = JSON.parse( e.message );
+            request.setCode( message.code );
+            request.setMsg( message.message );
+
+        } finally {
             res.send( request );
         }
     }
@@ -70,26 +98,34 @@ class User {
         let request = new Request();
         try{
             let body = req.body;
-            if( !isPhone( body.account ) ) {
-                request.setCode(400);
-                request.setMsg("账号不能为空");
-                res.send( request );
+            if( !this.isPhone( body.account ) ) {
+                throw new Error(JSON.stringify( { code : 400 , message : "账号不正确" } ));
             };
-            if( req.session.vcodeTime && Date.now() - req.session.vcodeTime < 30000 ) {
-                request.setCode(400);
-                request.setMsg("发送过于频繁");
-                res.send( request );
+            let data = await RedisReserve.getValue( body.account );
+            if( data ) {
+                let beforeTime = JSON.parse( data ).ctime;
+                if( Date.now() - beforeTime <= 60000 ) {
+                    throw new Error(JSON.stringify( { code : 400 , message : "发送过于频繁" } ));
+                }
             }
-            let random = await Math.floor( ( Math.random() + 1 ) * 100000 );
-            req.session.vcode = random;
-            req.session.vcodeTime = Date.now();
+
+
+            let random = Math.floor( ( Math.random() + 1 ) * 100000 );
+            let redisData = {
+                code : random ,
+                ctime : Date.now()
+            }
+            await RedisReserve.setValue( body.account , JSON.stringify( redisData ) );
             request.setCode(200);
             request.setMsg("成功");
             request.setResult( random );
-            res.send( request );
         } catch ( e ) {
-            request.setCode(500);
-            request.setMsg("服务器错误");
+            console.log( e.message )
+            let message = JSON.parse( e.message );
+            request.setCode( message.code );
+            request.setMsg( message.message );
+
+        } finally {
             res.send( request );
         }
     }
@@ -98,14 +134,56 @@ class User {
     * */
     async logout( req, res , next ){
         let request = new Request();
-        if( req.session.token ) {
-            delete req.session.token;
-        }
-        request.setCode(200);
-        request.setMsg("成功");
-        res.send( request );
-    }
 
+        try{
+            if( req.session.uid ) {
+                delete req.session.uid;
+                request.setCode(200);
+                request.setMsg("成功");
+            } else {
+                throw new Error(JSON.stringify( { code : 400 , message : "当前账号未登录" } ));
+            }
+        } catch (e) {
+            let message = JSON.parse( e.message );
+            request.setCode( message.code );
+            request.setMsg( message.message );
+        } finally {
+            res.send( request );
+        }
+    };
+    /*
+    *   修改资料
+    * */
+    async modify( req, res , next ){
+        let request = new Request();
+        let { nick_name , real_name , gender , avatar } = req.body;
+        let { _id } = req.session.uid;
+
+        try{
+            if( Boolean( req.session.uid.real_name ) ) {
+                request.setMsg( "真实姓名只能绑定一次" );
+            } else {
+                if( gender == 1 ) {
+                    req.body.gender_remark = "男";
+                } else if( gender == 0 ) {
+                    req.body.gender_remark = "女";
+                } else {
+                    req.body.gender_remark = "未知";
+                }
+                await UserModel.findByIdAndUpdate( _id , req.body );
+                request.setMsg( "成功" );
+            }
+
+            request.setCode( 200 );
+
+        } catch ( e ) {
+            let message = JSON.parse( e.message );
+            request.setCode( message.code );
+            request.setMsg( message.message );
+        } finally {
+            res.send( request );
+        }
+    }
 }
 
 
