@@ -109,7 +109,6 @@ class User extends CheckForm {
                 }
             }
 
-
             let random = Math.floor( ( Math.random() + 1 ) * 100000 );
             let redisData = {
                 code : random ,
@@ -163,15 +162,21 @@ class User extends CheckForm {
             if( Boolean( req.session.uid.real_name ) ) {
                 request.setMsg( "真实姓名只能绑定一次" );
             } else {
-                if( gender == 1 ) {
-                    req.body.gender_remark = "男";
-                } else if( gender == 0 ) {
-                    req.body.gender_remark = "女";
-                } else {
-                    req.body.gender_remark = "未知";
+                if( gender ) {
+                    if( gender == 1 ) {
+                        req.body.gender_remark = "男";
+                    } else if( gender == 0 ) {
+                        req.body.gender_remark = "女";
+                    } else {
+                        req.body.gender_remark = "未知";
+                    }
                 }
+
                 await UserModel.findByIdAndUpdate( _id , req.body );
+                let result = await UserModel.findById( _id );
+                req.session.uid = result;
                 request.setMsg( "成功" );
+                request.setResult( result );
             }
 
             request.setCode( 200 );
