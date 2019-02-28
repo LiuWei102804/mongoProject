@@ -54,21 +54,16 @@ app.use(session({
 //正确日志
 app.use(expressWinston.logger({
     transports: [
-        new ( winston.transports.Console )({
-            json: true,
-            colorize: true
-        }),
+        // new ( winston.transports.Console )({
+        //     json: true,
+        //     colorize: true
+        // }),
         new winston.transports.File({
-            filename: 'logs/success/' + format( Date.now(),"yyyyMMdd" ) + '.log' ////根据日期生成日志成功文件
+            filename: 'logs/success/' + format( Date.now(),"yyyyMMdd" ) + '.log'                //根据日期生成日志成功文件
         })
-    ] ,
-    msg: "HTTP {{req.method}} {{req.url}}",
-    expressFormat: true, // Use the default Express/morgan request formatting. Enabling this will override any msg if true. Will only output colors with colorize set to true
-    colorize: true, // Color the text and status code, using the Express/morgan color palette (text: gray, status: default green, 3XX cyan, 4XX yellow, 5XX red).
+    ]
 }));
-
 router( app );
-
 //错误日志
 app.use(expressWinston.errorLogger({
     transports: [
