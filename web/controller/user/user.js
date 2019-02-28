@@ -1,10 +1,13 @@
 //import UUID from "uuid";
-import session from "express-session";
+import log from "../../util/log4jsUtil";
 import UserModel from "../../models/user/user";
+import dtime from "time-formater";
+import UserLocaltonSearchModel from "../../models/user_location_search/user_location_search";
 import CheckForm from "../../prototype/checkform";
 import RedisReserve from "../../middlewares/redis";
 import Request from "../../prototype/request";
 import { isPhone } from "../../../public/common";
+
 
 
 
@@ -56,7 +59,6 @@ class User extends CheckForm {
             request.setResult( user );
 
         } catch( e ) {
-            console.log( e.message )
             let message = JSON.parse( e.message );
             request.setCode( message.code );
             request.setMsg( message.message );
@@ -70,7 +72,7 @@ class User extends CheckForm {
     * */
     async isLogin( req , res , next ){
         let request = new Request();
-        // console.log(`req.protocol  ==============>    ${req.protocol}` )
+
         try{
 
             if( req.session.uid ) {
@@ -185,6 +187,56 @@ class User extends CheckForm {
             let message = JSON.parse( e.message );
             request.setCode( message.code );
             request.setMsg( message.message );
+        } finally {
+            res.send( request );
+        }
+    }
+    /*
+    *   根据关键字搜索地址
+    * */
+    async searchByKeyword( req , res , next ){
+        const request = new Request();
+        let { _id } = req.session.uid;
+        let { word } = req.body;
+
+        try{
+            let result = await UserLocaltonSearchModel.findOne({ user_id : _id });
+            let keywords;
+            let data = { create_time : dtime( Date.now() ).format("YYYY-MM-DD HH:mm:ss") , word : word };
+            if( !result ) {
+                keywords = [ data ];
+                result = await UserLocaltonSearchModel.create({ keywords : keywords , user_id : _id });
+            } else {
+                keywords = result.keywords;
+                keywords.push( data );
+                if( keywords.length > 10 ) {
+                    keywords.length = 10;
+                };
+                await UserLocaltonSearchModel.findOneAndUpdate({ user_id : _id },{ keywords : keywords });
+            }
+            request.setCode( 200 );
+            request.setMsg( "成功" );
+        } catch ( e ) {
+            log.error( e.message );
+        } finally {
+            res.send( request );
+        }
+    }
+    /*
+    *   获取搜索历史记录
+    * */
+    async getSearchHistory( req , res , next ){
+        const request = new Request();
+        let { _id } = req.session.uid;
+
+        try{
+            let result = await UserLocaltonSearchModel.findOne({ user_id : _id });
+
+            request.setCode( 200 );
+            request.setMsg( "成功" );
+            request.setResult( result );
+        } catch ( e ) {
+
         } finally {
             res.send( request );
         }

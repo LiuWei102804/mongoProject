@@ -5,5 +5,6 @@ const router = express.Router();
 
 
 router.get("/getLocation.json", Position.getLocation );
+router.post("/search.json", Position.queryByKeyword );
 
 export default router;
