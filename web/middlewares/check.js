@@ -9,7 +9,6 @@ class Check{
         const uid = req.session.uid;
 
         try{
-            console.log( `uid   ================= ${ uid }` )
             if( !uid ) {
                 throw new Error("请先登录");
             }

@@ -11,7 +11,7 @@ import expressWinston from "express-winston";
 import path from "path";
 import connectRedis from "connect-redis";
 import router from "./routes/index";
-import { format } from "./public/common";
+import dtime from "time-formater";
 
 
 const app = express();
@@ -59,7 +59,7 @@ app.use(expressWinston.logger({
         //     colorize: true
         // }),
         new winston.transports.File({
-            filename: 'logs/success/' + format( Date.now(),"yyyyMMdd" ) + '.log'                //根据日期生成日志成功文件
+            filename: 'logs/success/' + dtime( Date.now() ).format("YYYYMMDD") + '.log'   //根据日期生成日志成功文件
         })
     ]
 }));
@@ -72,7 +72,7 @@ app.use(expressWinston.errorLogger({
             colorize: true
         }),
         new winston.transports.File({
-            filename: 'logs/error/' + format( Date.now(),"yyyyMMdd" ) + '.log'              //根据日前生成日志错误文件
+            filename: 'logs/error/' + dtime( Date.now() ).format("YYYYMMDD") + '.log'     //根据日期生成日志错误文件
         })
     ]
 }));

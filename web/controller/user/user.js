@@ -14,9 +14,14 @@ import { isPhone } from "../../../public/common";
 class User extends CheckForm {
     constructor(){
         super();
-        this.login = this.login.bind(this);
-        this.verifyCode = this.verifyCode.bind(this);
-        this.logout = this.logout.bind(this);
+
+        this.login = this.login.bind( this );
+        this.isLogin = this.isLogin.bind( this );
+        this.verifyCode = this.verifyCode.bind( this );
+        this.logout = this.logout.bind( this );
+        this.modify = this.modify.bind( this );
+        this.searchLocation = this.searchLocation.bind( this );
+        this.getSearchHistory = this.getSearchHistory.bind( this );
     }
     /*
     *   注册登录
@@ -139,8 +144,8 @@ class User extends CheckForm {
         try{
             if( req.session.uid ) {
                 delete req.session.uid;
-                request.setCode(200);
-                request.setMsg("成功");
+                request.setCode( 200 );
+                request.setMsg( "成功" );
             } else {
                 throw new Error(JSON.stringify( { code : 400 , message : "当前账号未登录" } ));
             }
@@ -192,9 +197,9 @@ class User extends CheckForm {
         }
     }
     /*
-    *   根据关键字搜索地址
+    *   添加地址搜索历史
     * */
-    async searchByKeyword( req , res , next ){
+    async searchLocation( req , res , next ){
         const request = new Request();
         let { _id } = req.session.uid;
         let { word } = req.body;
@@ -203,6 +208,7 @@ class User extends CheckForm {
             let result = await UserLocaltonSearchModel.findOne({ user_id : _id });
             let keywords;
             let data = { create_time : dtime( Date.now() ).format("YYYY-MM-DD HH:mm:ss") , word : word };
+
             if( !result ) {
                 keywords = [ data ];
                 result = await UserLocaltonSearchModel.create({ keywords : keywords , user_id : _id });
@@ -212,15 +218,15 @@ class User extends CheckForm {
                 if( keywords.length > 10 ) {
                     keywords.length = 10;
                 };
-                await UserLocaltonSearchModel.findOneAndUpdate({ user_id : _id },{ keywords : keywords });
+                await UserLocaltonSearchModel.findOneAndUpdate({ user_id : _id },{ $set : { keywords : keywords } });
             }
-            request.setCode( 200 );
-            request.setMsg( "成功" );
+
         } catch ( e ) {
-            log.error( e.message );
+            res.send({ code : 500 , msg : "服务器错误"})
+            console.log( e );
         } finally {
-            res.send( request );
         }
+        next();
     }
     /*
     *   获取搜索历史记录
