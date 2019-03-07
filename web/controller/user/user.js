@@ -216,7 +216,7 @@ class User extends CheckForm {
                 keywords = result.keywords;
                 keywords.push( data );
                 if( keywords.length > 10 ) {
-                    keywords.length = 10;
+                    keywords.shift();
                 };
                 await UserLocaltonSearchModel.findOneAndUpdate({ user_id : _id },{ $set : { keywords : keywords } });
             }
@@ -243,6 +243,23 @@ class User extends CheckForm {
             request.setResult( result );
         } catch ( e ) {
 
+        } finally {
+            res.send( request );
+        }
+    }
+    /*
+    *   清除历史记录
+    * */
+    async clearSearchHistory( req , res , next ){
+        const request = new Request();
+        let { _id } = req.session.uid;
+        try{
+            await UserLocaltonSearchModel.findOneAndRemove({ user_id : _id });
+
+            request.setCode( 200 );
+            request.setMsg( "成功" );
+        } catch ( e ) {
+            console.log( e.message );
         } finally {
             res.send( request );
         }

@@ -38,7 +38,6 @@ class Position extends BaiDuMap {
     async search( req , res , next ){
          const request = new Request();
          let { word } = req.body;
-        console.log( word )
          try{
             let result = await this.searchByKeyword( word );
 

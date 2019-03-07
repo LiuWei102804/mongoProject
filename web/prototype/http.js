@@ -13,6 +13,7 @@ class HttpClient {
                 let { statusCode } = res;
                 switch ( statusCode ) {
                     case 200 :
+                        res.setEncoding('utf8');
                         let rawData = "";
                         res.on("data" , chunk => {
                             rawData += chunk;

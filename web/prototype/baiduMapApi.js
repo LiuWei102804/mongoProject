@@ -7,6 +7,7 @@ class BaiDuMap extends HttpClient {
         this.decryptApi = "http://api.map.baidu.com/geocoder/v2/";                          //逆地理编码api
         this.transformApi = "http://api.map.baidu.com/geoconv/v1/";                         //转换经纬度api
         this.searchByKeywordApi = "http://api.map.baidu.com/place/v2/suggestion";         //关键字搜索api
+        this.positionByIpApi = "http://api.map.baidu.com/location/ip";
 
         this.decryptCode = this.decryptCode.bind( this );
         this.transformCode = this.transformCode.bind( this );
@@ -32,9 +33,20 @@ class BaiDuMap extends HttpClient {
     *   通过关键字查询地址
     * */
     async searchByKeyword( word ){
-        let url = `${this.searchByKeywordApi}?query=${encodeURI( word )}&region=${encodeURI("全国")}&city_limit=true&output=json&ak=${this.apk}`;
+        let currProvince = await this.positionByIp();
+        let url = `${this.searchByKeywordApi}?query=${encodeURI( word )}&region=${encodeURI(currProvince.content.address_detail.province)}&city_limit=true&output=json&ak=${this.apk}`;
+
 
         let result = await this.getUrl( url );
+        return result;
+    }
+    /*
+    *   通过IP定位
+    * */
+    async positionByIp(){
+        let url = `${this.positionByIpApi}?ak=${this.apk}`;
+        let result = await this.getUrl( url );
+
         return result;
     }
 }
