@@ -3,6 +3,7 @@ import config from "config-lite";
 import log from "../web/util/log4jsUtil";
 
 
+
 const client = redis.createClient();
 
 client.on("ready",function(err){
@@ -12,6 +13,7 @@ client.on("ready",function(err){
         log.info("redis连接成功， 端口号:6379");
     }
 })
+
 
 client.on("error", function (err) {
     console.error(` redis error  ${ err }`);

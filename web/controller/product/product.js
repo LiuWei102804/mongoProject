@@ -1,5 +1,6 @@
 import dtime from "time-formater";
 import check from "../../middlewares/check";
+import UserModel from "../../models/user/user";
 import ProductModel from "../../models/product/product";
 import Request from "../../prototype/request";
 import fs from "fs";
@@ -19,28 +20,28 @@ class ProductController {
     async saveOne( req, res , next ){
         const request = new Request();
         const body = req.body;
-        let { _id , nick_name } = req.session.uid;
+        let { _id } = req.session.uid;
 
         try{
             if( !Boolean( body.name ) ) {
-                throw new Error(JSON.stringify({ code : 400 , message : "商品名称不能为空"}) );
+                request.setCode( 400 );
+                throw new Error("商品名称不能为空");
             }
             if( !Boolean( body.price ) ) {
-                throw new Error(JSON.stringify({ code : 400 , message : "商品价格不能为空"}) );
+                request.setCode( 400 );
+                throw new Error("商品价格不能为空");
             }
             if( !Array.isArray( body.pics ) || body.pics.length == 0 ) {
-                throw new Error(JSON.stringify({ code : 400 , message : "至少一张图片"}) );
+                request.setCode( 400 );
+                throw new Error("至少一张图片");
             }
+            body["seller"] = await UserModel.findOne({ _id : _id  });
             body["user_id"] = _id;
-            body["user_nick_name"] = nick_name;
             await ProductModel.create( body );
             request.setCode( 200 );
             request.setMsg( "成功" );
-            res.send( request );
         } catch( e ) {
-            let message = JSON.parse( e.message );
-            request.setCode( message.code );
-            request.setMsg( message.message );
+            request.setMsg( e.message );
         } finally {
             res.send( request );
         }
@@ -56,15 +57,17 @@ class ProductController {
             if( !Boolean( query.id ) ) {
                 throw new Error("id不能为空");
             }
-            const data = await ProductModel.findById( query.id );
-            if( data ) {
+            //let result = await ProductModel.findByIdAndUpdate( query.id , { $set: { browse_count: result.browse_count + 1  } } );
+            let result = await ProductModel.findById( query.id );
+            await ProductModel.update( { _id : query.id } ,{ $set: { browse_count: result.browse_count + 1  } } );
+            if( result ) {
                 request.setCode(200);
                 request.setMsg("成功");
-                request.setResult( data );
+                request.setResult( result );
             } else {
                 request.setCode(200);
                 request.setMsg("成功");
-                request.setResult( [] );
+                request.setResult({});
             }
         } catch ( e ) {
             request.setCode(400);
@@ -78,17 +81,23 @@ class ProductController {
     * */
     async getProductByUser( req, res , next ){
         const request = new Request();
-        const { userId , offset = 0 , limit = 10 } = req.query;
+        const { userId , offset = 0 , limit = 10 , filter } = req.query;
 
         try{
+            let result;
             if( !Boolean( userId ) ) {
                 throw new Error("userId不能为空");
             }
-            const data = await ProductModel.find({ user_id : userId }).limit(Number( limit )).skip(Number( offset ));
-            if( data ) {
+            if( filter ) {
+                result = await ProductModel.find({ user_id : userId , "_id" : { $ne : filter } }).limit(Number( limit )).skip(Number( offset ));
+            } else {
+                result = await ProductModel.find({ user_id : userId }).limit(Number( limit )).skip(Number( offset ));
+            }
+
+            if( result ) {
                 request.setCode(200);
                 request.setMsg("成功");
-                request.setResult( data );
+                request.setResult( result );
             } else {
                 request.setCode(200);
                 request.setMsg("成功");
@@ -109,11 +118,11 @@ class ProductController {
         let { offset = 0,limit = 10 } = req.query;
 
         try{
-            const data = await ProductModel.find({}).limit(Number( limit )).skip(Number( offset ));
+            let result = await ProductModel.find({}).limit(Number( limit )).skip(Number( offset ));
 
             request.setCode( 200 );
-            request.setMsg("成功");
-            request.setResult( data );
+            request.setMsg( "成功" );
+            request.setResult( result );
         } catch ( e ) {
             request.setCode(400);
             request.setMsg( e.message );

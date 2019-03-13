@@ -143,16 +143,19 @@ class User extends CheckForm {
 
         try{
             if( req.session.uid ) {
+                //console.log( req.sessionID )
+                //let result = await RedisReserve.del( req.session.uid.account );
+                //console.log( `退出登录的接口 ===    ${result}` )
                 delete req.session.uid;
+
                 request.setCode( 200 );
                 request.setMsg( "成功" );
             } else {
-                throw new Error(JSON.stringify( { code : 400 , message : "当前账号未登录" } ));
+                throw new Error("当前账号未登录");
             }
         } catch (e) {
-            let message = JSON.parse( e.message );
-            request.setCode( message.code );
-            request.setMsg( message.message );
+            request.setCode( 400 );
+            request.setMsg( e.message );
         } finally {
             res.send( request );
         }

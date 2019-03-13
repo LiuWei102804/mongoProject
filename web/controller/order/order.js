@@ -8,9 +8,12 @@ class OrderController {
     constructor(){
         this.place = this.place.bind( this );
     }
+    /*
+    *   生成订单
+    * */
     async place( req, res , next ){
         const request = new Request();
-        let { _id , real_name } = req.session.uid;
+        let { _id , real_name , avatar , nick_name } = req.session.uid;
         let { goods } = req.body;
 
         try{
@@ -20,12 +23,14 @@ class OrderController {
             };
             let price = 0;
             goods.forEach(item => {
-                price += +item.price;
+                price += +item.price * item.count;
             });
             let data = {
                 order_num : `order${Date.now()}` ,
                 user_id : _id ,
                 user_real_name : real_name ,
+                user_avatar : avatar ,
+                user_nick_name : nick_name ,
                 goods : goods ,
                 order_price : price.toFixed(2)
             };
@@ -35,6 +40,53 @@ class OrderController {
             request.setResult( result );
 
         } catch (e) {
+            request.setMsg( e.message );
+        } finally {
+            res.send( request );
+        }
+    }
+    /*
+    *   查询订单信息
+    * */
+    async queryOrderByFilter( req , res , next ){
+        const request = new Request();
+        let { _id } = req.session.uid;
+        let { state = 0 , offset = 0 , limit = 10 } = req.query;
+
+        try{
+            let result;
+            if( state != 0 ) {
+                result = await OrderModel.find({ user_id : _id , state : Number( state ) }).limit(Number( limit )).skip(Number( offset ));
+            } else {
+                result = await OrderModel.find({ user_id : _id }).limit(Number( limit )).skip(Number( offset ));
+            }
+
+            request.setCode( 200 );
+            request.setMsg( "成功" );
+            request.setResult( result );
+        } catch( e ) {
+            request.setMsg( e.message );
+        } finally {
+            res.send( request );
+        }
+    }
+    /*
+    *   删除订单
+    * */
+    async delOrderItem( req , res , next ){
+        const request = new Request();
+        let { _id } = req.session.uid;
+        let { orderId } = req.query;
+
+        try{
+            if( !Boolean( orderId ) ) {
+                throw new Error("订单id不能为空");
+            }
+            let result = await OrderModel.findByIdAndRemove( orderId );
+
+            console.log( result )
+        } catch ( e ) {
+            request.setCode( 400 );
             request.setMsg( e.message );
         } finally {
             res.send( request );

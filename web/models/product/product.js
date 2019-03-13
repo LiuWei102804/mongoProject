@@ -2,18 +2,20 @@ import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 
 
-const productSchema = new Schema({
+const ProductSchema = new Schema({
     name : String ,
+    sub_name : String ,
+    seller : Object ,
     user_id : String ,
-    user_nick_name : String ,
     pics : Array ,
     price : String ,
     stock : { type : Number , default : 0 } ,
+    browse_count : { type : Number , default : 0 } ,
     describe : String ,
     sales_volume : { type : Number , default : 0 }
-}, { timestamps : true , id : false , versionKey : false });
+}, { timestamps : true , id : false , versionKey : false , collection : "product_coll" });
 
 // productSchema.index({ id : 1 });
-const Product = mongoose.model("product", productSchema );
+const ProductModel = mongoose.model("product_coll", ProductSchema );
 
-export default Product;
+export default ProductModel;
