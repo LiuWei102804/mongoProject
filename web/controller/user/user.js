@@ -106,13 +106,13 @@ class User extends CheckForm {
         try{
             let body = req.body;
             if( !this.isPhone( body.account ) ) {
-                throw new Error(JSON.stringify( { code : 400 , message : "账号不正确" } ));
+                throw new Error("账号不正确");
             };
             let data = await RedisReserve.getValue( body.account );
             if( data ) {
                 let beforeTime = JSON.parse( data ).ctime;
                 if( Date.now() - beforeTime <= 60000 ) {
-                    throw new Error(JSON.stringify( { code : 400 , message : "发送过于频繁" } ));
+                    throw new Error("发送过于频繁");
                 }
             }
 
@@ -126,10 +126,8 @@ class User extends CheckForm {
             request.setMsg("成功");
             request.setResult( random );
         } catch ( e ) {
-            console.log( e.message )
-            let message = JSON.parse( e.message );
-            request.setCode( message.code );
-            request.setMsg( message.message );
+            request.setCode( 400 );
+            request.setMsg( e.message );
 
         } finally {
             res.send( request );
