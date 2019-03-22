@@ -71,7 +71,7 @@ class OrderController {
         }
     }
     /*
-    *   删除订单
+    *   取消订单
     * */
     async delOrderItem( req , res , next ){
         const request = new Request();
@@ -82,9 +82,10 @@ class OrderController {
             if( !Boolean( orderId ) ) {
                 throw new Error("订单id不能为空");
             }
-            let result = await OrderModel.findByIdAndRemove( orderId );
+            let result = await OrderModel.findOneAndUpdate( { _id :  orderId } , { $set : { state : 3 , state_remark : "已取消" } } );
 
-            console.log( result )
+            request.setCode( 200 );
+            request.setMsg("成功");
         } catch ( e ) {
             request.setCode( 400 );
             request.setMsg( e.message );
