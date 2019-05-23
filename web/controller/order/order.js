@@ -1,12 +1,15 @@
 import dtime from "time-formater";
 import uuid from "uuid";
 import OrderModel from "../../models/order/order";
+import shopcarModel from "../../models/shopcar/shopcar";
 import Request from "../../prototype/request";
 
 
 class OrderController {
     constructor(){
         this.place = this.place.bind( this );
+        this.queryOrderByFilter = this.queryOrderByFilter.bind( this );
+        this.delOrderItem = this.delOrderItem.bind( this );
     }
     /*
     *   生成订单
@@ -16,25 +19,38 @@ class OrderController {
         let { _id , real_name , avatar , nick_name } = req.session.uid;
         let { goods } = req.body;
 
+        let updateShopCarData = [];
         try{
             if( !Boolean( goods ) ) {
                 request.setCode( 400 );
                 throw new Error("商品不能为空");
             };
             let price = 0;
-            goods.forEach(item => {
-                price += +item.price * item.count;
+            let shopcarData = await shopcarModel.findOne( { user_id : _id } );
+            shopcarData.shopcar_goods.forEach(( item , index , arr ) => {
+                goods.forEach(function ( val ) {
+                    if( item._id == val._id ) {
+                        arr.splice( index , 1 );
+                    }
+                })
             });
-            let data = {
-                order_num : `order${Date.now()}` ,
-                user_id : _id ,
-                user_real_name : real_name ,
-                user_avatar : avatar ,
-                user_nick_name : nick_name ,
-                goods : goods ,
-                order_price : price.toFixed(2)
-            };
-            let result = await OrderModel.create( data );
+            updateShopCarData = shopcarData.shopcar_goods;
+            console.log( updateShopCarData )
+            // await shopcarModel.findOneAndUpdate({ user_id : _id } , { $set : { shopcar_goods : updateShopCarData } });
+            //
+            // goods.forEach(item => {
+            //     price += item.price * item.count;
+            // });
+            // let data = {
+            //     order_num : `order${Date.now()}` ,
+            //     user_id : _id ,
+            //     user_real_name : real_name ,
+            //     user_avatar : avatar ,
+            //     user_nick_name : nick_name ,
+            //     goods : goods ,
+            //     order_price : price.toFixed(2)
+            // };
+            // let result = await OrderModel.create( data );
             request.setCode( 200 );
             request.setMsg( "成功" );
             request.setResult( result );
