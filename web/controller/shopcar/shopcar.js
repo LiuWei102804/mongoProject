@@ -81,7 +81,27 @@ class ShopCarController{
             res.send( request );
         }
     }
+    /*
+    *   移除购物车
+    * */
+    async removeGoodFromShopCar( req, res , next ){
+        const request = new Request();
+        let { orderId, goodId } = req.query;
 
+        try{
+            let { shopcar_goods } = await shopcarModel.findById( orderId );
+            let newData = shopcar_goods.filter( item => item._id != goodId );
+            await shopcarModel.findByIdAndUpdate( orderId , { $set : { shopcar_goods : newData }});
+
+            request.setCode( 200 );
+            request.setMsg("成功");
+        } catch ( e ) {
+            request.setCode( 400 );
+            request.setMsg( e.message );
+        } finally {
+            res.send( request );
+        }
+    }
     /*
     *   查询购物车数据
     * */

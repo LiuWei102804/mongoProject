@@ -6,6 +6,8 @@ dist
 
 .idea
 
+.lock
+
 images
 
 logs

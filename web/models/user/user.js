@@ -4,6 +4,7 @@ const Schema = mongoose.Schema;
 
 
 const UserSchema = new Schema({
+    //id : Schema.ObjectID ,
     account : String ,
     nick_name : { type : String , default : "" }  ,
     avatar : { type : String , default : "http://localhost:8999/default.png" } ,
