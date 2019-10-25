@@ -2,7 +2,7 @@
   "name": "nodemongo",
   "version": "1.0.0",
   "description": "",
-  "main": "app.js",
+  "main": "index.js",
   "scripts": {
     "dev": "cross-env NODE_ENV=development supervisor -i node_modules,images,logs --harmony index.js",
     "local": "cross-env NODE_ENV=local supervisor -i node_modules,images,logs --harmony index.js",
